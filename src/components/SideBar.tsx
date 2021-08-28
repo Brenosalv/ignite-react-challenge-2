@@ -1,3 +1,55 @@
-export function SideBar() {
-  // Complete aqui
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState
+} from "react";
+import { GenreResponseProps } from "../@types/interfaces";
+import { api } from "../services/api";
+import { Button } from "./Button";
+
+interface SideBarProps {
+  selectedGenreId: number;
+  selectedGenre: GenreResponseProps;
+  setSelectedGenreId: Dispatch<SetStateAction<number>>;
+  setSelectedGenre: Dispatch<SetStateAction<GenreResponseProps>>;
+}
+
+export function SideBar(props: SideBarProps) {
+  const [genres, setGenres] = useState<GenreResponseProps[]>([]);
+
+  useEffect(() => {
+    api.get<GenreResponseProps[]>('genres').then(response => {
+      setGenres(response.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    api.get<GenreResponseProps>(`genres/${props.selectedGenreId}`).then(response => {
+      props.setSelectedGenre(response.data);
+    });
+  }, [props.selectedGenreId]);
+
+  function handleClickButton(id: number) {
+    props.setSelectedGenreId(id);
+  }
+
+  return (
+    <nav className="sidebar">
+      <span>Watch<p>Me</p></span>
+
+      <div className="buttons-container">
+        {genres.map(genre => (
+          <Button
+            key={String(genre.id)}
+            title={genre.title}
+            iconName={genre.name}
+            onClick={() => handleClickButton(genre.id)}
+            selected={props.selectedGenreId === genre.id}
+          />
+        ))}
+      </div>
+
+    </nav>
+  );
 }
